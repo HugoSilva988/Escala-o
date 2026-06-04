@@ -27,23 +27,23 @@
             max-width: 550px;
             aspect-ratio: 3/4.2;
             border: 4px solid rgba(255,255,255,0.8);
-            border-radius: 8px;
+            border-radius: 12px;
             margin: auto;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
             touch-action: none; /* Impede gestos do navegador ao arrastar */
         }
 
-        /* Linhas do Campo */
+        /* Linhas do Campo de Futebol */
         .line {
             position: absolute;
-            border: 2px solid rgba(255,255,255,0.5);
+            border: 2px solid rgba(255,255,255,0.4);
             pointer-events: none;
         }
         .center-circle {
             width: 100px; height: 100px; border-radius: 50%;
             top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
-        .half-line { width: 100%; top: 50%; border-bottom: 2px solid rgba(255,255,255,0.5); }
+        .half-line { width: 100%; top: 50%; border-bottom: 2px solid rgba(255,255,255,0.4); }
         .area-top { width: 60%; height: 15%; top: 0; left: 20%; border-top: 0; }
         .area-bottom { width: 60%; height: 15%; bottom: 0; left: 20%; border-bottom: 0; }
 
@@ -56,26 +56,26 @@
             align-items: center;
             z-index: 50;
             transition: transform 0.2s ease, box-shadow 0.2s ease, top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            width: 80px;
-            cursor: grab;
+            width: 85px;
+            cursor: pointer;
             user-select: none;
         }
 
         /* Classe ativa durante o arraste para fluidez total */
         .player-card.dragging {
-            transition: transform 0.1s ease !important;
+            transition: transform 0.05s ease !important;
             cursor: grabbing;
             z-index: 100;
         }
 
         .player-photo {
-            width: 55px;
-            height: 55px;
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
             border: 3px solid #facc15;
             background: #262626;
             overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.6);
             pointer-events: none; /* Evita interferência no arraste */
         }
 
@@ -90,7 +90,7 @@
             color: #fff;
             font-size: 10px;
             font-weight: 900;
-            padding: 2px 6px;
+            padding: 3px 6px;
             border-radius: 4px;
             margin-top: 5px;
             text-transform: uppercase;
@@ -103,8 +103,524 @@
             pointer-events: none; /* Evita interferência no arraste */
         }
 
+        /* Vaga vazia (Slot) */
         .empty-slot {
-            width: 40px;
+            width: 50px;
+            height: 50px;
+            border: 2px dashed rgba(255,255,255,0.4);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.8);
+            background-color: rgba(0,0,0,0.45);
+            pointer-events: none; /* Evita interferência no arraste */
+            transition: all 0.3s;
+        }
+
+        .player-card:hover .empty-slot {
+            border-color: #facc15;
+            background-color: rgba(0,0,0,0.6);
+            color: #facc15;
+            transform: scale(1.05);
+        }
+
+        .slot-label {
+            font-size: 9px;
+            font-weight: 900;
+            margin-top: 2px;
+            color: #facc15;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* Personalização da barra de rolagem */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #18181b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #52525b;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
+        
+        <!-- PAINEL DE CONTROLE -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 shadow-2xl">
+                <h2 class="text-2xl font-black mb-6 text-yellow-400 tracking-tight">CENTRAL DO TREINADOR</h2>
+                
+                <!-- Adicionar Novo Jogador -->
+                <div class="space-y-4 mb-8">
+                    <h3 class="text-xs font-bold uppercase text-zinc-500 tracking-wider">Criar Novo Jogador</h3>
+                    <input type="text" id="newName" placeholder="Nome do Jogador" class="w-full bg-zinc-800 p-3 rounded-lg border border-zinc-700 outline-none focus:border-yellow-500 transition text-sm">
+                    <input type="text" id="newImg" placeholder="Link da Imagem (URL do rosto)" class="w-full bg-zinc-800 p-3 rounded-lg border border-zinc-700 outline-none focus:border-yellow-500 transition text-sm">
+                    <button onclick="addPlayer()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black p-3 rounded-lg transition-all text-xs tracking-wider uppercase">
+                        CRIAR JOGADOR
+                    </button>
+                </div>
+
+                <hr class="border-zinc-800 my-6">
+
+                <!-- Configurações de Formação -->
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-2 tracking-wider">Formação Tática</label>
+                    <select id="formation" class="w-full bg-zinc-800 p-3 rounded-lg border border-zinc-700 outline-none focus:border-yellow-500 text-sm font-bold">
+                        <option value="433">4-3-3</option>
+                        <option value="442">4-4-2</option>
+                        <option value="352">3-5-2</option>
+                        <option value="4231">4-2-3-1</option>
+                        <option value="532">5-3-2</option>
+                    </select>
+                </div>
+
+                <!-- Lista de Jogadores Criados (Roster) -->
+                <h3 class="text-xs font-bold uppercase text-zinc-500 mb-4 tracking-wider">Seu Elenco Criado</h3>
+                <div id="playerRoster" class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                    <p class="text-zinc-600 italic text-sm text-center py-4">Nenhum jogador criado ainda...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CAMPO DE JOGO -->
+        <div class="lg:col-span-8">
+            <div class="field-container" id="pitch">
+                <div class="line half-line"></div>
+                <div class="line center-circle"></div>
+                <div class="line area-top"></div>
+                <div class="line area-bottom"></div>
+                
+                <!-- Jogadores ativos no campo -->
+                <div id="activePlayers" class="absolute inset-0"></div>
+            </div>
+            
+            <!-- Botões de Controle Inferiores -->
+            <div class="mt-8 flex flex-wrap justify-center gap-4">
+                <button onclick="resetPositions()" class="bg-zinc-800 text-yellow-400 border border-yellow-500/30 px-6 py-3 rounded-full text-xs font-black tracking-wider hover:bg-zinc-700 transition">
+                    RESTAURAR FORMAÇÃO
+                </button>
+                <button onclick="window.print()" class="bg-yellow-500 text-black px-8 py-3 rounded-full text-xs font-black tracking-wider hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20">
+                    SALVAR ESCALAÇÃO
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL SELETOR DE JOGADOR PARA O SLOT -->
+    <div id="selectorModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 max-w-md w-full rounded-2xl p-6 shadow-2xl scale-95 transition-all duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-black text-yellow-400 tracking-tight">
+                    ESCALAR PARA: <span id="modalPositionName" class="text-white ml-1 bg-zinc-800 px-2 py-1 rounded text-sm">GOL</span>
+                </h3>
+                <button onclick="closePlayerSelector()" class="text-zinc-400 hover:text-white text-2xl font-bold">&times;</button>
+            </div>
+            
+            <p class="text-xs text-zinc-500 uppercase tracking-wider mb-3">Selecione um jogador do seu elenco:</p>
+            
+            <!-- Lista dentro do modal -->
+            <div id="modalPlayerList" class="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar mb-6">
+                <!-- Populado dinamicamente -->
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="unassignCurrentSlot()" class="flex-1 bg-red-650/20 text-red-400 border border-red-500/30 hover:bg-red-950/30 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition">
+                    Desocupar Posição
+                </button>
+                <button onclick="closePlayerSelector()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let roster = []; // Elenco de jogadores criados [{ id, name, img }]
+        let activeFormation = "433";
+        let customPositions = {}; // Coordenadas arrastadas: { index: { t, l } }
+        let slotAssignments = {}; // Quem está escalado em qual slot: { slotIndex: playerId }
+        let currentSelectingSlotIndex = null; // Guarda qual slot está sendo editado no momento
+
+        // Recupera uma imagem de avatar padrão bonita se a imagem falhar
+        window.imgError = function(img) {
+            img.onerror = null;
+            const name = img.getAttribute('data-name') || 'Jogador';
+            img.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=128`;
+        };
+
+        // Dados de formação com as posições (siglas) atribuídas automaticamente para cada slot
+        const formationData = {
+            "433": [
+                {t: 90, l: 50, r: "GOL"}, // Slot 0
+                {t: 75, l: 15, r: "LD"},  {t: 80, l: 38, r: "ZAG"}, {t: 80, l: 62, r: "ZAG"}, {t: 75, l: 85, r: "LE"}, // Slot 1-4
+                {t: 55, l: 25, r: "MC"},  {t: 60, l: 50, r: "VOL"}, {t: 55, l: 75, r: "MC"}, // Slot 5-7
+                {t: 25, l: 20, r: "PE"},  {t: 18, l: 50, r: "ATA"}, {t: 25, l: 80, r: "PD"}  // Slot 8-10
+            ],
+            "442": [
+                {t: 90, l: 50, r: "GOL"},
+                {t: 75, l: 15, r: "LD"},  {t: 80, l: 38, r: "ZAG"}, {t: 80, l: 62, r: "ZAG"}, {t: 75, l: 85, r: "LE"},
+                {t: 52, l: 15, r: "MD"},  {t: 58, l: 38, r: "MC"},  {t: 58, l: 62, r: "MC"},  {t: 52, l: 85, r: "ME"},
+                {t: 22, l: 35, r: "ATA"}, {t: 22, l: 65, r: "ATA"}
+            ],
+            "352": [
+                {t: 90, l: 50, r: "GOL"},
+                {t: 80, l: 25, r: "ZAG"}, {t: 83, l: 50, r: "ZAG"}, {t: 80, l: 75, r: "ZAG"},
+                {t: 55, l: 12, r: "ALA"}, {t: 58, l: 35, r: "VOL"}, {t: 62, l: 50, r: "MEI"}, {t: 58, l: 65, r: "VOL"}, {t: 55, l: 88, r: "ALA"},
+                {t: 25, l: 35, r: "ATA"}, {t: 25, l: 65, r: "ATA"}
+            ],
+            "4231": [
+                {t: 90, l: 50, r: "GOL"},
+                {t: 75, l: 15, r: "LD"},  {t: 80, l: 38, r: "ZAG"}, {t: 80, l: 62, r: "ZAG"}, {t: 75, l: 85, r: "LE"},
+                {t: 60, l: 35, r: "VOL"}, {t: 60, l: 65, r: "VOL"},
+                {t: 38, l: 15, r: "ME"},  {t: 34, l: 50, r: "MEI"}, {t: 38, l: 85, r: "MD"},
+                {t: 16, l: 50, r: "ATA"}
+            ],
+            "532": [
+                {t: 90, l: 50, r: "GOL"},
+                {t: 75, l: 12, r: "LD"},  {t: 80, l: 30, r: "ZAG"}, {t: 82, l: 50, r: "ZAG"}, {t: 80, l: 70, r: "ZAG"}, {t: 75, l: 88, r: "LE"},
+                {t: 55, l: 25, r: "MC"},  {t: 58, l: 50, r: "VOL"}, {t: 55, l: 75, r: "MC"},
+                {t: 22, l: 35, r: "ATA"}, {t: 22, l: 65, r: "ATA"}
+            ]
+        };
+
+        function addPlayer() {
+            const name = document.getElementById('newName').value.trim();
+            const img = document.getElementById('newImg').value.trim() || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+
+            if (!name) {
+                showToast("Digite o nome do jogador!");
+                return;
+            }
+
+            const newPlayer = { id: Date.now(), name, img };
+            roster.push(newPlayer);
+            
+            document.getElementById('newName').value = '';
+            document.getElementById('newImg').value = '';
+            
+            updateRosterUI();
+            
+            // Tenta auto-escalar no primeiro slot disponível
+            autoAssignPlayerToEmptySlot(newPlayer.id);
+            
+            updatePitch();
+        }
+
+        function removePlayer(id) {
+            // Remove o jogador do roster
+            roster = roster.filter(p => p.id !== id);
+            
+            // Remove qualquer escalação ativa dele no campo
+            for (let slot in slotAssignments) {
+                if (slotAssignments[slot] === id) {
+                    delete slotAssignments[slot];
+                }
+            }
+            
+            updateRosterUI();
+            updatePitch();
+        }
+
+        // Tenta encaixar automaticamente o jogador criado na primeira vaga vazia que encontrar
+        function autoAssignPlayerToEmptySlot(playerId) {
+            const slotsCount = formationData[activeFormation].length;
+            for (let i = 0; i < slotsCount; i++) {
+                if (!slotAssignments[i]) {
+                    slotAssignments[i] = playerId;
+                    break;
+                }
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg font-bold shadow-2xl z-[200]";
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        function updateRosterUI() {
+            const container = document.getElementById('playerRoster');
+            if (roster.length === 0) {
+                container.innerHTML = `<p class="text-zinc-600 italic text-sm text-center py-4">Nenhum jogador criado ainda...</p>`;
+                return;
+            }
+
+            container.innerHTML = roster.map(p => {
+                const safeName = p.name.replace(/"/g, '&quot;');
+                
+                // Encontra se ele está escalado e qual a posição dele na formação tática
+                let positionLabel = "Reserva";
+                let isEscalado = false;
+                
+                for (let slot in slotAssignments) {
+                    if (slotAssignments[slot] === p.id) {
+                        const currentSlots = formationData[activeFormation];
+                        if (currentSlots[slot]) {
+                            positionLabel = currentSlots[slot].r;
+                            isEscalado = true;
+                        }
+                    }
+                }
+
+                return `
+                    <div class="flex items-center justify-between p-2 bg-zinc-800/80 hover:bg-zinc-850 rounded-lg group transition border border-transparent hover:border-zinc-700">
+                        <div class="flex items-center gap-3">
+                            <img src="${p.img}" data-name="${safeName}" onerror="imgError(this)" class="w-9 h-9 rounded-full object-cover border border-zinc-700">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold tracking-tight">${p.name}</span>
+                                <span class="text-[9px] ${isEscalado ? 'text-yellow-400 font-extrabold' : 'text-zinc-500 font-bold'} uppercase tracking-wider">
+                                    ${positionLabel}
+                                </span>
+                            </div>
+                        </div>
+                        <button onclick="removePlayer(${p.id})" class="text-zinc-500 hover:text-red-500 px-2 text-xl transition-colors">&times;</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updatePitch() {
+            const container = document.getElementById('activePlayers');
+            container.innerHTML = '';
+            const positions = formationData[activeFormation];
+
+            positions.forEach((pos, index) => {
+                const playerId = slotAssignments[index];
+                const player = roster.find(p => p.id === playerId);
+                
+                const div = document.createElement('div');
+                div.className = 'player-card';
+                
+                // Aplica a posição customizada se existir, caso contrário a tática padrão
+                const currentPos = customPositions[index] || pos;
+                div.style.top = `${currentPos.t}%`;
+                div.style.left = `${currentPos.l}%`;
+
+                if (player) {
+                    const safeName = player.name.replace(/"/g, '&quot;');
+                    div.innerHTML = `
+                        <div class="relative">
+                            <div class="player-photo">
+                                <img src="${player.img}" data-name="${safeName}" onerror="imgError(this)" alt="${player.name}">
+                            </div>
+                            <!-- A Posição aparece de forma automática conforme o Slot -->
+                            <div class="absolute -top-1 -right-1 bg-yellow-500 text-black text-[9px] font-black px-1.5 py-0.5 rounded shadow-lg border border-black uppercase z-10 tracking-widest">
+                                ${pos.r}
+                            </div>
+                        </div>
+                        <div class="player-name shadow-lg">${player.name}</div>
+                    `;
+                } else {
+                    // Exibe a vaga vazia inteligente exibindo a posição automática
+                    div.innerHTML = `
+                        <div class="empty-slot shadow-inner">
+                            <span class="text-lg font-bold">+</span>
+                        </div>
+                        <span class="slot-label">${pos.r}</span>
+                    `;
+                }
+
+                // Configura o recurso de arrastar E também monitora clique para abrir o seletor
+                makeElementDraggableAndClickable(div, index, pos.r);
+
+                container.appendChild(div);
+            });
+
+            // Atualiza o menu lateral para refletir as posições atuais
+            updateRosterUI();
+        }
+
+        function makeElementDraggableAndClickable(elm, index, positionName) {
+            const pitch = document.getElementById('pitch');
+            let isDragging = false;
+            let startX, startY;
+            
+            const onStart = (e) => {
+                isDragging = false;
+                
+                // Captura coordenadas iniciais
+                startX = e.touches ? e.touches[0].clientX : e.clientX;
+                startY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                elm.classList.add('dragging', 'scale-110');
+                
+                const onMove = (moveEvent) => {
+                    const rect = pitch.getBoundingClientRect();
+                    
+                    let clientX = moveEvent.touches ? moveEvent.touches[0].clientX : moveEvent.clientX;
+                    let clientY = moveEvent.touches ? moveEvent.touches[0].clientY : moveEvent.clientY;
+                    
+                    // Verifica se o movimento ultrapassou o limiar de um clique simples (5px)
+                    if (Math.abs(clientX - startX) > 6 || Math.abs(clientY - startY) > 6) {
+                        isDragging = true;
+                    }
+                    
+                    if (isDragging) {
+                        // Transforma coordenadas de pixels em porcentagem relativa ao campo
+                        let leftPercent = ((clientX - rect.left) / rect.width) * 100;
+                        let topPercent = ((clientY - rect.top) / rect.height) * 100;
+                        
+                        // Mantém dentro dos limites do campo com margem de segurança
+                        leftPercent = Math.max(5, Math.min(95, leftPercent));
+                        topPercent = Math.max(4, Math.min(96, topPercent));
+                        
+                        elm.style.left = `${leftPercent}%`;
+                        elm.style.top = `${topPercent}%`;
+                        
+                        // Salva as coordenadas customizadas arrastadas
+                        customPositions[index] = { t: topPercent, l: leftPercent };
+                    }
+                    
+                    if (moveEvent.cancelable) moveEvent.preventDefault();
+                };
+                
+                const onEnd = () => {
+                    elm.classList.remove('dragging', 'scale-110');
+                    
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mouseup', onEnd);
+                    window.removeEventListener('touchmove', onMove);
+                    window.removeEventListener('touchend', onEnd);
+                    
+                    // Se não foi um arraste significante, age como um clique normal
+                    if (!isDragging) {
+                        openPlayerSelector(index, positionName);
+                    }
+                };
+                
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onEnd);
+                window.addEventListener('touchmove', onMove, { passive: false });
+                window.addEventListener('touchend', onEnd);
+                
+                if (e.cancelable) e.preventDefault();
+            };
+            
+            elm.addEventListener('mousedown', onStart);
+            elm.addEventListener('touchstart', onStart, { passive: false });
+        }
+
+        function openPlayerSelector(slotIndex, positionName) {
+            currentSelectingSlotIndex = slotIndex;
+            
+            // Exibe a posição atual no título do Modal
+            document.getElementById('modalPositionName').innerText = positionName;
+            
+            const container = document.getElementById('modalPlayerList');
+            container.innerHTML = '';
+            
+            if (roster.length === 0) {
+                container.innerHTML = `<p class="text-zinc-500 italic text-sm text-center py-4">Nenhum jogador cadastrado no elenco. Crie jogadores na Central do Treinador à esquerda!</p>`;
+            } else {
+                // Renderiza lista de escolha rápida no modal
+                container.innerHTML = roster.map(p => {
+                    const safeName = p.name.replace(/"/g, '&quot;');
+                    
+                    // Checa se este jogador já está escalado em algum outro slot
+                    let assignedSlot = null;
+                    for (let s in slotAssignments) {
+                        if (slotAssignments[s] === p.id) {
+                            assignedSlot = s;
+                        }
+                    }
+                    
+                    let statusText = "Disponível";
+                    let isCurrent = slotAssignments[slotIndex] === p.id;
+                    
+                    if (isCurrent) {
+                        statusText = "Já está escalado nesta vaga";
+                    } else if (assignedSlot !== null) {
+                        const otherPosName = formationData[activeFormation][assignedSlot].r;
+                        statusText = `Escalado como ${otherPosName}`;
+                    }
+                    
+                    return `
+                        <div onclick="selectPlayerForSlot(${p.id})" class="flex items-center justify-between p-3 rounded-xl cursor-pointer border ${isCurrent ? 'bg-yellow-500/10 border-yellow-500 text-yellow-400' : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-750 text-white'} transition">
+                            <div class="flex items-center gap-3">
+                                <img src="${p.img}" data-name="${safeName}" onerror="imgError(this)" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex flex-col text-left">
+                                    <span class="text-sm font-bold">${p.name}</span>
+                                    <span class="text-[10px] text-zinc-400 font-semibold">${statusText}</span>
+                                </div>
+                            </div>
+                            ${isCurrent ? '<span class="text-yellow-400 font-black text-xs mr-2">ATUAL</span>' : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Abre o modal
+            const modal = document.getElementById('selectorModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.firstElementChild.classList.remove('scale-95');
+                modal.firstElementChild.classList.add('scale-100');
+            }, 50);
+        }
+
+        function closePlayerSelector() {
+            const modal = document.getElementById('selectorModal');
+            modal.firstElementChild.classList.remove('scale-100');
+            modal.firstElementChild.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                currentSelectingSlotIndex = null;
+            }, 150);
+        }
+
+        function selectPlayerForSlot(playerId) {
+            if (currentSelectingSlotIndex === null) return;
+            
+            // Remove esse jogador de qualquer outro slot que ele já estivesse antes (sem duplicar jogador em campo)
+            for (let slot in slotAssignments) {
+                if (slotAssignments[slot] === playerId) {
+                    delete slotAssignments[slot];
+                }
+            }
+
+            // Atribui o jogador ao slot atual
+            slotAssignments[currentSelectingSlotIndex] = playerId;
+            
+            closePlayerSelector();
+            updatePitch();
+        }
+
+        function unassignCurrentSlot() {
+            if (currentSelectingSlotIndex === null) return;
+            
+            delete slotAssignments[currentSelectingSlotIndex];
+            closePlayerSelector();
+            updatePitch();
+        }
+
+        function resetPositions() {
+            customPositions = {};
+            updatePitch();
+        }
+
+        document.getElementById('formation').addEventListener('change', (e) => {
+            activeFormation = e.target.value;
+            // Reseta posições customizadas para alinhar na nova formação perfeita
+            resetPositions();
+        });
+
+        // Inicializar aplicação
+        updatePitch();
+    </script>
+</body>
+</html>            width: 40px;
             height: 40px;
             border: 2px dashed rgba(255,255,255,0.3);
             border-radius: 50%;
